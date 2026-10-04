@@ -1,0 +1,165 @@
+:root {
+  --foreground: #330033;
+  --foreground-rgb: 60, 22, 66;
+  --background: #fffbdb;
+  --background-start-rgb: 255, 251, 219;
+  --background-end-rgb: 255, 251, 219;
+  --primary: #77ecec;
+  --primary-rgb: 42, 157, 143;
+  --secondary: #fa9eeb;
+  --secondary-rgb: 119, 118, 188;
+  --tertiary: #c0b1fb;
+  --tertiary-rgb: 205, 199, 229;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground: #fffbdb;
+    --foreground-rgb: 255, 251, 219;
+    --background: #3c1642;
+    --background-start-rgb: 60, 22, 66;
+    --background-end-rgb: 60, 22, 66;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+.background {
+  position: "absolute";
+  top: 0;
+  left: 0;
+  right: 0;
+  height: "100%";
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.bg-secondary {
+  background-color: var(--secondary);
+}
+
+.bg-tertiary {
+  background-color: var(--tertiary);
+}
+
+.fg-primary {
+  color: var(--primary);
+}
+
+.fg-secondary {
+  color: var(--secondary);
+}
+
+.fg-tertiary {
+  color: var(--tertiary);
+}
+
+.reverse-background {
+  background-color: var(--foreground);
+}
+
+.reverse-color {
+  color: var(--background);
+}
+
+.light-text {
+  color: #fffbdb;
+}
+
+.dark-text {
+  color: #330033;
+}
+
+/* pokemon types colors */
+
+.normal {
+  background-color: #e6ceef;
+}
+
+.fire {
+  background-color: #f56159;
+}
+
+.water {
+  background-color: #89abfa;
+}
+
+.grass {
+  background-color: #94e76a;
+}
+
+.electric {
+  background-color: #f7d54a;
+}
+
+.ice {
+  background-color: #c2e2e2;
+}
+
+.fighting {
+  background-color: #f59e60;
+}
+
+.poison {
+  background-color: #c35ec3;
+}
+
+.ground {
+  background-color: #eed899;
+}
+
+.flying {
+  background-color: #bccfe9;
+}
+
+.psychic {
+  background-color: #f16e96;
+}
+
+.bug {
+  background-color: #d1dd62;
+}
+
+.rock {
+  background-color: #b4a563;
+}
+
+.ghost {
+  background-color: #7d6a9b;
+}
+
+.dragon {
+  background-color: #9472e2;
+}
+
+.dark {
+  background-color: #574a42;
+}
+
+.steel {
+  background-color: #cfcfdc;
+}
+
+.fairy {
+  background-color: #ffaeef;
+}
+
+.h-full-screen {
+  height: 95vh;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
