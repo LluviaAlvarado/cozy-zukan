@@ -11,31 +11,36 @@ export const getAllPoke = async () => {
       return JSON.parse(pokemon ?? "")
     } else {
       const list = await axios.get(`${pokeApiUrl}pokemon/?offset=0&limit=2000`)
-      list.data.results = await Promise.all(
-        list.data.results.map(async (poke: any) => {
-          let pokeSpecie: any = null
-          pokeSpecie = await axios
-            .get(`${pokeApiUrl}pokemon-species/${poke.url.split("/").at(-2)}`)
-            .catch((e) => {})
-          let jpName = ""
+      const pokemon = await Promise.all(
+        list.data.results.map(async (data: any) => {
+          const id = Number(data.url.split("/").filter(Boolean).at(-1))
+          let species = null
 
-          if (pokeSpecie && pokeSpecie.data.names) {
-            const spName = pokeSpecie.data.names.find(
-              (spName: any) => spName.language.name === "ja",
+          try {
+            const response = await axios.get(
+              `${pokeApiUrl}pokemon-species/${id}`,
             )
-            if (spName) {
-              jpName = spName.name
-            }
+            species = response.data
+          } catch (error) {
+            console.warn(`Could not load species data for Pokemon ${id}`, error)
           }
 
-          poke.name += ` (${jpName})`
+          const japaneseName =
+            species?.names?.find((entry: any) => entry.language.name === "ja")
+              ?.name ?? ""
 
-          return poke
+          return {
+            id: species?.id ?? id,
+            name: japaneseName ? `${data.name} (${japaneseName})` : data.name,
+            types: [],
+            gender_rate: species?.gender_rate ?? null,
+            sprite: "",
+          }
         }),
       )
       // save to local storage
-      await storage.setItem("pokemon", JSON.stringify(list.data))
-      return list.data
+      await storage.setItem("pokemon", JSON.stringify(pokemon))
+      return pokemon
     }
   } catch (e) {
     console.log("getAllPoke error:", e)
@@ -49,9 +54,13 @@ export const getAllTypes = async () => {
     if (await storage.getItem("types")) {
       types = JSON.parse((await storage.getItem("types")) ?? "")
     } else {
-      for (let i = 0; i < 19; i++) {
+      for (let i = 1; i < 19; i++) {
         const type = await axios.get(`${pokeApiUrl}type/${i}`)
-        types.push(type.data)
+        types.push({
+          id: type.data.id,
+          name: type.data.name,
+          damage_relations: type.data.damage_relations,
+        })
       }
       // save to local storage
       await storage.setItem("types", JSON.stringify(types))
@@ -59,23 +68,43 @@ export const getAllTypes = async () => {
     return types
   } catch (e: any) {
     console.log(e)
+    throw e
   }
 }
 
 export const getPokeInfo = async (id: string) => {
-  const poke: any = await axios.get(`${pokeApiUrl}pokemon/${id}`).catch((e) => {
-    //redirect("/not-found")
-  })
-  const specie: any = await axios.get(poke.data.species.url).catch((e) => {
-    //redirect("/not-found")
-  })
-  poke.data.species = specie.data
-  return poke.data
+  try {
+    const stored = await storage.getItem("pokemon")
+    if (!stored) throw new Error("Pokemon data is not in storage.")
+
+    const pokemon = JSON.parse(stored)
+    const index = pokemon.findIndex((p: any) => String(p.id) === String(id))
+    if (index === -1) throw new Error(`Pokemon ${id} was not found.`)
+
+    const response = await axios.get(`${pokeApiUrl}pokemon/${id}`)
+    const apiPokemon = response.data
+
+    const updatedPokemon = {
+      ...pokemon[index],
+      types: apiPokemon.types.map((entry: any) => entry.type.name),
+      sprite: apiPokemon.sprites.front_default,
+    }
+
+    pokemon[index] = updatedPokemon
+    await storage.setItem("pokemon", JSON.stringify(pokemon))
+
+    return updatedPokemon
+  } catch (e) {
+    console.log(e)
+    throw e
+  }
 }
 
 export const updateLocalData = async () => {
-  const pokeList = await getAllPoke()
-  await storage.setItem("pokemon", JSON.stringify(pokeList))
-  const typeList = await getAllTypes()
-  await storage.setItem("types", JSON.stringify(typeList))
+  //cleaning up current data first
+  await storage.removeItem("pokemon")
+  await storage.removeItem("types")
+  // fetching again
+  await getAllPoke()
+  await getAllTypes()
 }

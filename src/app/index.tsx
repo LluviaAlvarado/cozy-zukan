@@ -1,9 +1,11 @@
 import { getAllPoke } from "@/api/poke"
-import InlineDropdown from "@/components/ui/inline-dropdown"
 import { ThemedText } from "@/components/ui/themed-text"
-import { Colors, MaxContentWidth, Spacing } from "@/constants/theme"
+import { Colors, GlobalStyles, Spacing } from "@/constants/theme"
+import NumberIcon from "@expo/material-symbols/123.xml"
 import SearchIcon from "@expo/material-symbols/search.xml"
+import AlphaIcon from "@expo/material-symbols/sort_by_alpha.xml"
 import { Host, Icon } from "@expo/ui"
+import { Switch } from "@expo/ui/jetpack-compose"
 import { AxiosError } from "axios"
 import { LinearGradient } from "expo-linear-gradient"
 import { useEffect, useState } from "react"
@@ -11,7 +13,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   useColorScheme,
   View,
@@ -19,13 +20,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context"
 
 export default function ZukanScreen() {
-  const [totalPages, setTotalPages] = useState(0)
   const [pokeList, setPokeList] = useState<any>(null)
   const [filteredPokeList, setFilteredPokeList] = useState<any>([])
-  const [paginatedPokeList, setPaginatedPokeList] = useState<any>([])
   const [searchTerm, setSearchTerm] = useState<string>("")
-  const [pageLimit, setPageLimit] = useState(10)
-  const [page, setPage] = useState(1)
+  const [sortAlpha, setSortAlpha] = useState(false)
   const [loading, setLoading] = useState(true)
   const scheme = useColorScheme()
   const colors = Colors[scheme === "unspecified" ? "dark" : scheme]
@@ -35,32 +33,39 @@ export default function ZukanScreen() {
     getAllPoke()
       .then((list) => {
         setPokeList(list)
-        setFilteredPokeList(list.results)
-        setTotalPages(Math.ceil(list.count / pageLimit))
-        setPaginatedPokeList(paginateList(filterList(list.results)))
+        setFilteredPokeList(filterList(list))
       })
       .then(() => setLoading(false))
       .catch((e: Error | AxiosError) => (console.log(e), setLoading(false)))
   }, [])
 
   useEffect(() => {
-    if (pokeList) {
-      setPaginatedPokeList(paginateList(filterList(pokeList.results)))
-      setTotalPages(Math.ceil(filteredPokeList.length / pageLimit))
-    }
-  }, [page, pageLimit])
-
-  useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (pokeList) {
-        const filteredList = filterList(pokeList.results)
-        setFilteredPokeList(filteredList)
-        setPaginatedPokeList(paginateList(filteredList))
-        setTotalPages(Math.ceil(filteredList.length / pageLimit))
+        setFilteredPokeList(sortList(filterList(pokeList)))
       }
     }, 500)
     return () => clearTimeout(timeoutId)
-  }, [searchTerm, 500])
+  }, [searchTerm, pokeList])
+
+  useEffect(() => {
+    if (filteredPokeList) {
+      setFilteredPokeList(sortList(filteredPokeList))
+    }
+  }, [sortAlpha])
+
+  const sortList = (list: any[]) => {
+    return [...list].sort((a, b) => {
+      if (sortAlpha) {
+        return a.name.localeCompare(b.name, undefined, {
+          sensitivity: "base",
+        })
+      }
+      const idA = Number(a.id)
+      const idB = Number(b.id)
+      return idA - idB
+    })
+  }
 
   const filterList = (list: any[]) =>
     list.filter((poke) =>
@@ -69,31 +74,8 @@ export default function ZukanScreen() {
         : true,
     )
 
-  const paginateList = (list: any[]) => {
-    const offset = (page - 1) * pageLimit
-    return list.slice(offset, offset + pageLimit)
-  }
-
-  const onSelectPageLimit = (limit: number) => {
-    const newPageCount = Math.ceil(filterList.length / limit)
-    if (page > newPageCount) setPage(newPageCount)
-    setPageLimit(limit)
-  }
-
-  const onSelectPage = (page: number) => {
-    setPage(page)
-  }
-
-  const onNavigatePages = (e: any) => {
-    if (e.target.id === "prev-page-btn") {
-      if (page > 1) {
-        setPage(page - 1)
-      }
-    } else if (e.target.id === "next-page-btn") {
-      if (page < totalPages) {
-        setPage(page + 1)
-      }
-    }
+  const onSortSwitch = (checked: boolean) => {
+    setSortAlpha(checked)
   }
 
   const onTypeSearch = (term: string) => {
@@ -101,26 +83,27 @@ export default function ZukanScreen() {
   }
 
   const renderPokemon = () =>
-    paginatedPokeList.map((pokemon: any) => (
+    filteredPokeList.map((pokemon: any) => (
       <Pressable
-        style={styles.stepContainer}
+        style={[
+          styles.poke,
+          {
+            borderColor: colors.backgroundElement,
+            borderWidth: 2,
+            borderTopWidth: 0,
+          },
+        ]}
         key={pokemon.name}
         /*onPress={() =>
           navigation.navigate('Pokemon', { id: pokemon.url.split("/").at(-2) })
         }*/
       >
-        <ThemedText>{pokemon.name}</ThemedText>
+        <ThemedText type="bold">{pokemon.name}</ThemedText>
       </Pressable>
     ))
 
-  const getPageNumbers = () =>
-    [...Array(totalPages)].map((_, num) => {
-      num++
-      return num
-    })
-
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={GlobalStyles.safeArea}>
       <LinearGradient
         colors={[colors.gradientStart, colors.gradientEnd]}
         style={StyleSheet.absoluteFill}
@@ -129,7 +112,8 @@ export default function ZukanScreen() {
       {loading ? (
         <ThemedText>Loading pokemon list...</ThemedText>
       ) : (
-        <View style={styles.flexC}>
+        <View style={GlobalStyles.column}>
+          {/* Search bar */}
           <LinearGradient
             colors={[colors.input, "transparent"]}
             start={{ x: 0.8, y: 1 }}
@@ -144,49 +128,33 @@ export default function ZukanScreen() {
               <Icon
                 name={SearchIcon}
                 size={32}
-                color={scheme === "dark" ? "pink" : "purple"}
+                color={scheme === "dark" ? "teal" : "violet"}
               />
             </Host>
           </LinearGradient>
-          <ScrollView style={styles.pokeList}>{renderPokemon()}</ScrollView>
-          <View style={styles.buttonRow}>
-            <View style={styles.flexR}>
-              <View style={styles.flexC}>
-                <Text>Page Length:</Text>
-                <InlineDropdown
-                  values={[10, 20, 50, 100]}
-                  onSelect={onSelectPageLimit}
-                  value={pageLimit}></InlineDropdown>
-              </View>
-
-              <View style={styles.flexC}>
-                <ThemedText>Page:</ThemedText>
-                <View style={styles.flexR}>
-                  <InlineDropdown
-                    values={getPageNumbers()}
-                    onSelect={onSelectPage}
-                    value={page}></InlineDropdown>
-                  <Text>/{totalPages}</Text>
-                </View>
-              </View>
-            </View>
-            <View style={styles.flexR}>
-              <Pressable
-                className="rounded bg-primary p-2 flex-1 w-16"
-                id="prev-page-btn"
-                //onClick={onNavigatePages}
-                disabled={page === 1}>
-                <Text>Prev</Text>
-              </Pressable>
-              <Pressable
-                className="rounded bg-primary p-2 flex-1"
-                id="next-page-btn"
-                //onClick={onNavigatePages}
-                disabled={page === totalPages}>
-                <Text>Next</Text>
-              </Pressable>
-            </View>
+          {/* Pokemon list */}
+          <View style={styles.sort}>
+            <Host matchContents>
+              <Switch
+                value={sortAlpha}
+                onCheckedChange={onSortSwitch}
+                colors={{
+                  checkedThumbColor: colors.button,
+                  checkedTrackColor: colors.buttonSecondary,
+                  uncheckedThumbColor: colors.buttonSecondary,
+                  uncheckedTrackColor: colors.backgroundElement,
+                  uncheckedBorderColor: colors.buttonSecondary,
+                }}></Switch>
+            </Host>
+            <Host matchContents>
+              <Icon
+                name={sortAlpha ? AlphaIcon : NumberIcon}
+                size={24}
+                color={scheme === "dark" ? "teal" : "violet"}
+              />
+            </Host>
           </View>
+          <ScrollView style={styles.pokeList}>{renderPokemon()}</ScrollView>
         </View>
       )}
     </SafeAreaView>
@@ -194,28 +162,12 @@ export default function ZukanScreen() {
 }
 
 const styles = StyleSheet.create({
-  flexR: {
-    flex: 1,
-    alignItems: "center",
+  sort: {
     flexDirection: "row",
     gap: Spacing.one,
-  },
-  flexC: {
-    flex: 1,
-    alignItems: "stretch",
-    justifyContent: "space-between",
-    flexDirection: "column",
-    gap: Spacing.one,
-  },
-  safeArea: {
-    flex: 1,
-    flexDirection: "column",
-    paddingHorizontal: Spacing.one,
-    alignItems: "stretch",
-    justifyContent: "space-between",
-    gap: Spacing.three,
-    paddingTop: Spacing.three,
-    maxWidth: MaxContentWidth,
+    justifyContent: "flex-end",
+    alignItems: "center",
+    alignContent: "space-between",
   },
   inputGradient: {
     flex: 0,
@@ -238,20 +190,15 @@ const styles = StyleSheet.create({
   buttonRow: {
     flex: 0,
     alignItems: "center",
+    justifyContent: "space-evenly",
     flexDirection: "row",
     gap: Spacing.one,
   },
-  title: {
-    textAlign: "center",
-  },
-  code: {
-    textTransform: "uppercase",
-  },
-  stepContainer: {
-    gap: Spacing.three,
+  poke: {
+    gap: Spacing.one,
     alignSelf: "stretch",
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
+    paddingVertical: Spacing.three,
     borderRadius: Spacing.four,
   },
 })

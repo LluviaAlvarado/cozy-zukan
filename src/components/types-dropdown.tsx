@@ -1,10 +1,11 @@
 import { ThemedText } from "@/components/ui/themed-text"
 import { ThemedView } from "@/components/ui/themed-view"
+import { Spacing } from "@/constants/theme"
 import { useTheme } from "@/hooks/use-theme"
 import { useState } from "react"
 import { FlatList, StyleSheet, TouchableOpacity } from "react-native"
 
-export default function InlineDropdown({
+export default function TypesDropdown({
   values,
   onSelect,
   value = null,
@@ -24,9 +25,14 @@ export default function InlineDropdown({
   }
 
   return (
-    <ThemedView>
+    <ThemedView style={styles.container}>
       <TouchableOpacity
-        style={styles.button}
+        style={[
+          styles.button,
+          {
+            backgroundColor: theme.button,
+          },
+        ]}
         onPress={() => setIsOpen((value) => !value)}>
         <ThemedText style={styles.buttonText}>
           {selectedValue || "Select an option"}{" "}
@@ -41,7 +47,9 @@ export default function InlineDropdown({
               <TouchableOpacity
                 style={styles.option}
                 onPress={() => handleSelect(item)}>
-                <ThemedText style={styles.optionText}>{item}</ThemedText>{" "}
+                <ThemedText type="smallBold" style={styles.buttonText}>
+                  {item}
+                </ThemedText>
               </TouchableOpacity>
             )}
           />
@@ -53,33 +61,26 @@ export default function InlineDropdown({
 
 const styles = StyleSheet.create({
   container: {
-    margin: 20,
+    margin: Spacing.one,
+    width: 48,
   },
   button: {
-    padding: 15,
-    backgroundColor: "#5fb7b9",
-    borderRadius: 5,
+    padding: Spacing.one,
+    borderRadius: Spacing.two,
   },
   buttonText: {
-    color: "white",
     textAlign: "center",
   },
   dropdown: {
-    marginTop: 5,
-    backgroundColor: "white",
-    borderRadius: 5,
+    marginTop: Spacing.one,
+    borderRadius: Spacing.two,
     elevation: 3,
     shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowRadius: 5,
+    shadowRadius: Spacing.two,
     shadowOffset: { width: 0, height: 2 },
   },
   option: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-  },
-  optionText: {
-    fontSize: 16,
+    padding: Spacing.two,
   },
 })

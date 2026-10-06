@@ -5,28 +5,32 @@
 
 import "@/global.css"
 
-import { Platform } from "react-native"
+import { Platform, StyleSheet } from "react-native"
 
 export const Colors = {
   light: {
-    text: "#330033",
-    background: " #f5fbcc",
-    gradientStart: "#bef8ca",
-    gradientEnd: "#f5fbcc",
-    input: "#ceb1faaf",
-    backgroundElement: "#bef8ca",
-    backgroundSelected: "#c0b1fb",
+    text: "#530253",
     textSecondary: "#c0b1fb",
+    background: "#fbc1f7",
+    gradientStart: "#bef8ca",
+    gradientEnd: "#fbc1f7",
+    input: "#ceb1faaf",
+    backgroundElement: "#e4eceaa0",
+    backgroundSelected: "#f0b1fb",
+    button: "#b9f4e1",
+    buttonSecondary: "#be9df0af",
   },
   dark: {
-    text: "#fffbdb",
+    text: "#f8dbf8",
+    textSecondary: "#c0b1fb",
     background: "#2d0a33",
-    gradientStart: "#05654a",
+    gradientStart: "#036f52",
     gradientEnd: "#2d0a33",
     input: "#2e115b",
-    backgroundElement: "#fa9eeb",
+    backgroundElement: "#95268253",
     backgroundSelected: "#c0b1fb",
-    textSecondary: "#c0b1fb",
+    button: "#009688",
+    buttonSecondary: "#6f3eb8af",
   },
 } as const
 
@@ -69,3 +73,30 @@ export const Spacing = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0
 export const MaxContentWidth = 800
+
+export const GlobalStyles = StyleSheet.create({
+  row: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.one,
+  },
+  column: {
+    flex: 1,
+    flexDirection: "column",
+    alignItems: "stretch",
+    justifyContent: "space-between",
+    gap: Spacing.one,
+  },
+  safeArea: {
+    flex: 1,
+    flexDirection: "column",
+    paddingHorizontal: Spacing.one,
+    alignItems: "stretch",
+    justifyContent: "space-between",
+    gap: Spacing.three,
+    paddingTop: Spacing.three,
+    maxWidth: MaxContentWidth,
+  },
+})
