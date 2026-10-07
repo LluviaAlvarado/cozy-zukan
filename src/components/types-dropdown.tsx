@@ -1,7 +1,7 @@
 import { ThemedText } from "@/components/ui/themed-text"
 import { ThemedView } from "@/components/ui/themed-view"
-import { Colors, Spacing } from "@/constants/theme"
-import { useColorScheme } from "@/hooks/use-color-scheme"
+import { Spacing } from "@/constants/theme"
+import { useTypeColor } from "@/hooks/use-type-color"
 import { useState } from "react"
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native"
 
@@ -16,12 +16,7 @@ export default function TypesDropdown({
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedValue, setSelectedValue] = useState(value || values[0])
-  const scheme = useColorScheme()
-  const colors = Colors[scheme === "unspecified" ? "dark" : scheme]
-
-  const getTypeColor = (type: keyof typeof colors) => {
-    return colors[type]
-  }
+  const getTypeColor = useTypeColor()
   const handleSelect = (value: any) => {
     setSelectedValue(value)
     onSelect(value)

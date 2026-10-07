@@ -1,8 +1,8 @@
 import { getPokeInfo } from "@/api/poke"
 import { ThemedText } from "@/components/ui/themed-text"
 import { ThemedView } from "@/components/ui/themed-view"
-import { Colors, GlobalStyles, Spacing } from "@/constants/theme"
-import { useColorScheme } from "@/hooks/use-color-scheme"
+import { GlobalStyles, Spacing } from "@/constants/theme"
+import { useTypeColor } from "@/hooks/use-type-color"
 import { useLocalSearchParams } from "expo-router"
 import { useEffect, useState } from "react"
 import { Image, StyleSheet, View } from "react-native"
@@ -12,12 +12,7 @@ export default function PokemonScreen() {
   const [pokemon, setPokemon] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const scheme = useColorScheme()
-  const colors = Colors[scheme === "unspecified" ? "dark" : scheme]
-
-  const getTypeColor = (type: keyof typeof colors) => {
-    return colors[type]
-  }
+  const getTypeColor = useTypeColor()
 
   useEffect(() => {
     let active = true

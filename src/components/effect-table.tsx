@@ -1,5 +1,5 @@
-import { Colors, GlobalStyles, Spacing } from "@/constants/theme"
-import { useColorScheme } from "@/hooks/use-color-scheme"
+import { GlobalStyles, Spacing } from "@/constants/theme"
+import { useTypeColor } from "@/hooks/use-type-color"
 import { StyleSheet, View } from "react-native"
 import { ThemedText } from "./ui/themed-text"
 
@@ -14,12 +14,7 @@ export default function EffectivenessTable({
   effectTo,
   effectFrom,
 }: Props) {
-  const scheme = useColorScheme()
-  const colors = Colors[scheme === "unspecified" ? "dark" : scheme]
-
-  const getTypeColor = (type: keyof typeof colors) => {
-    return colors[type]
-  }
+  const getTypeColor = useTypeColor()
 
   const renderTypes = (effect: any) =>
     effect.length > 0 ? (
