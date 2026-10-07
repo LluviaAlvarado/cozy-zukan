@@ -3,10 +3,11 @@ import EffectivenessTable from "@/components/effect-table"
 import TypesDropdown from "@/components/types-dropdown"
 import { ThemedText } from "@/components/ui/themed-text"
 import { Colors, GlobalStyles } from "@/constants/theme"
+
 import { AxiosError } from "axios"
 import { LinearGradient } from "expo-linear-gradient"
 import { useEffect, useState } from "react"
-import { StyleSheet, useColorScheme, View } from "react-native"
+import { ScrollView, StyleSheet, useColorScheme, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
 export default function TypesScreen() {
@@ -22,7 +23,7 @@ export default function TypesScreen() {
         setTypes(list)
         setSelectedType(list[0] ?? null)
       })
-      .catch((error: Error | AxiosError) => console.log(error))
+      .catch((error: Error | AxiosError) => console.error(error))
       .finally(() => setLoading(false))
   }, [])
 
@@ -37,7 +38,7 @@ export default function TypesScreen() {
         <ThemedText>Loading Pokemon types...</ThemedText>
       ) : selectedType && types ? (
         <View style={GlobalStyles.column}>
-          <ThemedText type="title">Effectiveness of:</ThemedText>
+          <ThemedText type="title">Effectiveness of type:</ThemedText>
           <TypesDropdown
             values={types.map((type) => type.name)}
             onSelect={(type: string) =>
@@ -45,23 +46,25 @@ export default function TypesScreen() {
             }
             value={selectedType.name}
           />
-          <View style={styles.test}>
-            <EffectivenessTable
-              title="Super Effective"
-              effectTo={selectedType.damage_relations.double_damage_to}
-              effectFrom={selectedType.damage_relations.double_damage_from}
-            />
-            <EffectivenessTable
-              title="Not Very Effective"
-              effectTo={selectedType.damage_relations.half_damage_to}
-              effectFrom={selectedType.damage_relations.half_damage_from}
-            />
-            <EffectivenessTable
-              title="No Effect"
-              effectTo={selectedType.damage_relations.no_damage_to}
-              effectFrom={selectedType.damage_relations.no_damage_from}
-            />
-          </View>
+          <ScrollView>
+            <View style={GlobalStyles.column}>
+              <EffectivenessTable
+                title="Super Effective"
+                effectTo={selectedType.damage_relations.double_damage_to}
+                effectFrom={selectedType.damage_relations.double_damage_from}
+              />
+              <EffectivenessTable
+                title="Not Very Effective"
+                effectTo={selectedType.damage_relations.half_damage_to}
+                effectFrom={selectedType.damage_relations.half_damage_from}
+              />
+              <EffectivenessTable
+                title="No Effect"
+                effectTo={selectedType.damage_relations.no_damage_to}
+                effectFrom={selectedType.damage_relations.no_damage_from}
+              />
+            </View>
+          </ScrollView>
         </View>
       ) : (
         <ThemedText>Pokemon types are unavailable.</ThemedText>

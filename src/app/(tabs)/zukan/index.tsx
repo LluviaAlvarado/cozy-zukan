@@ -35,7 +35,7 @@ export default function ZukanScreen() {
         setPokeList(list)
         setFilteredPokeList(sortList(filterList(list)))
       })
-      .catch((error: Error | AxiosError) => console.log(error))
+      .catch((error: Error | AxiosError) => console.error(error))
       .finally(() => setLoading(false))
   }, [])
 

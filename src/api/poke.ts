@@ -3,6 +3,18 @@ import axios from "axios"
 
 const pokeApiUrl: string = "https://pokeapi.co/api/v2/"
 
+const blobToDataUri = (blob: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") resolve(reader.result)
+      else reject(new Error("Could not encode the Pokemon sprite."))
+    }
+    reader.onerror = () =>
+      reject(new Error("Could not read the Pokemon sprite."))
+    reader.readAsDataURL(blob)
+  })
+
 export const getAllPoke = async () => {
   try {
     // first try to get from local storage, if not found then fetch from API
@@ -43,7 +55,7 @@ export const getAllPoke = async () => {
       return pokemon
     }
   } catch (e) {
-    console.log("getAllPoke error:", e)
+    console.error("getAllPoke error:", e)
     throw e
   }
 }
@@ -67,7 +79,7 @@ export const getAllTypes = async () => {
     }
     return types
   } catch (e: any) {
-    console.log(e)
+    console.error(e)
     throw e
   }
 }
@@ -78,16 +90,35 @@ export const getPokeInfo = async (id: string) => {
     if (!stored) throw new Error("Pokemon data is not in storage.")
 
     const pokemon = JSON.parse(stored)
-    const index = pokemon.findIndex((p: any) => String(p.id) === String(id))
+    const index = pokemon.findIndex(
+      (entry: any) => String(entry.id) === String(id),
+    )
     if (index === -1) throw new Error(`Pokemon ${id} was not found.`)
+
+    const cachedPokemon = pokemon[index]
+    if (
+      cachedPokemon.types?.length &&
+      typeof cachedPokemon.sprite === "string"
+    ) {
+      return cachedPokemon
+    }
 
     const response = await axios.get(`${pokeApiUrl}pokemon/${id}`)
     const apiPokemon = response.data
+    let sprite = ""
+
+    if (apiPokemon.sprites.front_default) {
+      const imageResponse = await fetch(apiPokemon.sprites.front_default)
+      if (!imageResponse.ok) {
+        throw new Error(`Could not download Pokemon ${id}'s sprite.`)
+      }
+      sprite = await blobToDataUri(await imageResponse.blob())
+    }
 
     const updatedPokemon = {
-      ...pokemon[index],
+      ...cachedPokemon,
       types: apiPokemon.types.map((entry: any) => entry.type.name),
-      sprite: apiPokemon.sprites.front_default,
+      sprite,
     }
 
     pokemon[index] = updatedPokemon
@@ -95,7 +126,7 @@ export const getPokeInfo = async (id: string) => {
 
     return updatedPokemon
   } catch (e) {
-    console.log(e)
+    console.error(e)
     throw e
   }
 }

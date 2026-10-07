@@ -1,9 +1,9 @@
 import { ThemedText } from "@/components/ui/themed-text"
 import { ThemedView } from "@/components/ui/themed-view"
-import { Spacing } from "@/constants/theme"
-import { useTheme } from "@/hooks/use-theme"
+import { Colors, Spacing } from "@/constants/theme"
+import { useColorScheme } from "@/hooks/use-color-scheme"
 import { useState } from "react"
-import { FlatList, StyleSheet, TouchableOpacity } from "react-native"
+import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native"
 
 export default function TypesDropdown({
   values,
@@ -16,8 +16,12 @@ export default function TypesDropdown({
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedValue, setSelectedValue] = useState(value || values[0])
-  const theme = useTheme()
+  const scheme = useColorScheme()
+  const colors = Colors[scheme === "unspecified" ? "dark" : scheme]
 
+  const getTypeColor = (type: keyof typeof colors) => {
+    return colors[type]
+  }
   const handleSelect = (value: any) => {
     setSelectedValue(value)
     onSelect(value)
@@ -30,7 +34,7 @@ export default function TypesDropdown({
         style={[
           styles.button,
           {
-            backgroundColor: theme.button,
+            backgroundColor: getTypeColor(selectedValue),
           },
         ]}
         onPress={() => setIsOpen((value) => !value)}>
@@ -39,13 +43,13 @@ export default function TypesDropdown({
         </ThemedText>
       </TouchableOpacity>
       {isOpen && (
-        <ThemedView style={styles.dropdown}>
+        <View style={styles.dropdown}>
           <FlatList
             data={values}
             keyExtractor={(item) => item.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
-                style={styles.option}
+                style={[styles.option, { backgroundColor: getTypeColor(item) }]}
                 onPress={() => handleSelect(item)}>
                 <ThemedText type="smallBold" style={styles.buttonText}>
                   {item}
@@ -53,7 +57,7 @@ export default function TypesDropdown({
               </TouchableOpacity>
             )}
           />
-        </ThemedView>
+        </View>
       )}
     </ThemedView>
   )
@@ -62,7 +66,7 @@ export default function TypesDropdown({
 const styles = StyleSheet.create({
   container: {
     margin: Spacing.one,
-    width: 48,
+    borderRadius: Spacing.two,
   },
   button: {
     padding: Spacing.one,
@@ -82,5 +86,6 @@ const styles = StyleSheet.create({
   },
   option: {
     padding: Spacing.two,
+    borderRadius: Spacing.two,
   },
 })

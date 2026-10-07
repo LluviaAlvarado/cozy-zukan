@@ -1,6 +1,6 @@
-import { Platform, StyleSheet, Text, type TextProps } from "react-native"
+import { StyleSheet, Text, type TextProps } from "react-native"
 
-import { Fonts, ThemeColor } from "@/constants/theme"
+import { ThemeColor } from "@/constants/theme"
 import { useTheme } from "@/hooks/use-theme"
 
 export type ThemedTextProps = TextProps & {
@@ -13,7 +13,7 @@ export type ThemedTextProps = TextProps & {
     | "subtitle"
     | "link"
     | "linkPrimary"
-    | "code"
+    | "info"
   themeColor?: ThemeColor
 }
 
@@ -37,7 +37,7 @@ export function ThemedText({
         type === "subtitle" && styles.subtitle,
         type === "link" && styles.link,
         type === "linkPrimary" && styles.linkPrimary,
-        type === "code" && styles.code,
+        type === "info" && styles.info,
         style,
       ]}
       {...rest}
@@ -67,14 +67,16 @@ const styles = StyleSheet.create({
     fontWeight: 700,
   },
   title: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: 600,
     lineHeight: 40,
+    textAlign: "center",
   },
   subtitle: {
-    fontSize: 24,
+    fontSize: 20,
     lineHeight: 32,
     fontWeight: 600,
+    textAlign: "center",
   },
   link: {
     lineHeight: 30,
@@ -85,9 +87,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#a912ac",
   },
-  code: {
-    fontFamily: Fonts.mono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
-    fontSize: 12,
+  info: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: 700,
+    textAlign: "center",
   },
 })

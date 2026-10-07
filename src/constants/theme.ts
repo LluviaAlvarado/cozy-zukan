@@ -1,10 +1,3 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import "@/global.css"
-
 import { Platform, StyleSheet } from "react-native"
 
 export const Colors = {
@@ -17,11 +10,30 @@ export const Colors = {
     input: "#ceb1faaf",
     backgroundElement: "#e4eceaa0",
     backgroundSelected: "#f0b1fb",
-    button: "#b9f4e1",
-    buttonSecondary: "#be9df0af",
+    button: "#be9df0af",
+    buttonSecondary: "#b9f4e1",
+    // type colors
+    normal: "#f4e3fb",
+    fire: "#f57973",
+    water: "#91aff5",
+    grass: "#a8ea86",
+    electric: "#f7da65",
+    ice: "#c2e2e2",
+    fighting: "#f8a469",
+    poison: "#ca73ca",
+    ground: "#eed899",
+    flying: "#bccfe9",
+    psychic: "#f87da2",
+    bug: "#e5f177",
+    rock: "#b4a563",
+    ghost: "#a891c9",
+    dragon: "#a686f1",
+    dark: "#676462",
+    steel: "#b6b6c9",
+    fairy: "#ffaeef",
   },
   dark: {
-    text: "#f8dbf8",
+    text: "#f4d9f4",
     textSecondary: "#c0b1fb",
     background: "#2d0a33",
     gradientStart: "#036f52",
@@ -29,8 +41,27 @@ export const Colors = {
     input: "#2e115b",
     backgroundElement: "#95268253",
     backgroundSelected: "#c0b1fb",
-    button: "#009688",
-    buttonSecondary: "#6f3eb8af",
+    button: "#6f3eb8af",
+    buttonSecondary: "#009688",
+    // type colors
+    normal: "#a19ea2",
+    fire: "#d73d35",
+    water: "#658ae1",
+    grass: "#75cc4a",
+    electric: "#e4bb17",
+    ice: "#78c8c8",
+    fighting: "#ef7a27",
+    poison: "#ae1eae",
+    ground: "#d2af4f",
+    flying: "#7a9fd3",
+    psychic: "#dd4472",
+    bug: "#aab826",
+    rock: "#94711a",
+    ghost: "#523c76",
+    dragon: "#5a2cc4",
+    dark: "#36271d",
+    steel: "#71717d",
+    fairy: "#e979d2",
   },
 } as const
 
@@ -76,6 +107,7 @@ export const MaxContentWidth = 800
 
 export const GlobalStyles = StyleSheet.create({
   row: {
+    marginTop: Spacing.half,
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
@@ -83,10 +115,11 @@ export const GlobalStyles = StyleSheet.create({
     gap: Spacing.one,
   },
   column: {
+    marginVertical: Spacing.half,
     flex: 1,
     flexDirection: "column",
     alignItems: "stretch",
-    justifyContent: "space-between",
+    justifyContent: "space-evenly",
     gap: Spacing.one,
   },
   safeArea: {

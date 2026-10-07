@@ -13,7 +13,10 @@ export default function ZukanStackLayout() {
         headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.text,
       }}>
-      <Stack.Screen name="index" options={{ title: "Zukan" }} />
+      <Stack.Screen
+        name="index"
+        options={{ title: "Zukan", headerShown: false }}
+      />
       <Stack.Screen name="pokemon/[id]" options={{ title: "Pokemon" }} />
     </Stack>
   )
