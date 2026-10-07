@@ -35,7 +35,7 @@ export default function TypesScreen() {
         pointerEvents="none"
       />
       {loading ? (
-        <ThemedText>Loading Pokemon types...</ThemedText>
+        <ThemedText type="info">Loading Pokemon types...</ThemedText>
       ) : selectedType && types ? (
         <View style={GlobalStyles.column}>
           <ThemedText type="title">Effectiveness of type:</ThemedText>

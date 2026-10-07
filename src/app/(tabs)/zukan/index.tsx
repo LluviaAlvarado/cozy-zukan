@@ -1,7 +1,8 @@
-import { getAllPoke } from "@/api/poke"
+import { getAllPoke, updatePokemonData } from "@/api/poke"
 import { ThemedText } from "@/components/ui/themed-text"
 import { Colors, GlobalStyles, Spacing } from "@/constants/theme"
 import NumberIcon from "@expo/material-symbols/123.xml"
+import ReloadIcon from "@expo/material-symbols/autorenew.xml"
 import SearchIcon from "@expo/material-symbols/search.xml"
 import AlphaIcon from "@expo/material-symbols/sort_by_alpha.xml"
 import { Host, Icon } from "@expo/ui"
@@ -43,6 +44,21 @@ export default function ZukanScreen() {
         setLoadError(true)
       })
       .finally(() => setLoading(false))
+  }
+
+  const reloadAllData = async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      const list = await updatePokemonData()
+      setPokeList(list)
+      setFilteredPokeList(sortList(filterList(list)))
+    } catch (error) {
+      console.error(error)
+      setLoadError(true)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -100,7 +116,7 @@ export default function ZukanScreen() {
       />
 
       {loading ? (
-        <ThemedText>Loading Pokemon...</ThemedText>
+        <ThemedText type="info">Loading Pokemon...</ThemedText>
       ) : loadError ? (
         <View style={styles.message}>
           <ThemedText type="info">Could not load the Pokemon list.</ThemedText>
@@ -132,28 +148,46 @@ export default function ZukanScreen() {
               />
             </Host>
           </LinearGradient>
-          <View style={styles.sort}>
-            <ThemedText type="small">Order by</ThemedText>
-            <Host matchContents>
-              <Switch
-                value={sortAlpha}
-                onCheckedChange={setSortAlpha}
-                colors={{
-                  checkedThumbColor: colors.button,
-                  checkedTrackColor: colors.buttonSecondary,
-                  uncheckedThumbColor: colors.buttonSecondary,
-                  uncheckedTrackColor: colors.backgroundElement,
-                  uncheckedBorderColor: colors.buttonSecondary,
-                }}
-              />
-            </Host>
-            <Host matchContents>
-              <Icon
-                name={sortAlpha ? AlphaIcon : NumberIcon}
-                size={24}
-                color={scheme === "dark" ? "teal" : "violet"}
-              />
-            </Host>
+          <View style={styles.buttonRow}>
+            <Pressable
+              accessibilityLabel="Reload Pokemon data"
+              accessibilityRole="button"
+              hitSlop={8}
+              style={styles.reloadButton}
+              onPress={reloadAllData}>
+              <View pointerEvents="none">
+                <Host matchContents>
+                  <Icon
+                    name={ReloadIcon}
+                    size={24}
+                    color={scheme === "dark" ? "teal" : "violet"}
+                  />
+                </Host>
+              </View>
+            </Pressable>
+            <View style={styles.sort}>
+              <ThemedText type="small">Order by</ThemedText>
+              <Host matchContents>
+                <Switch
+                  value={sortAlpha}
+                  onCheckedChange={setSortAlpha}
+                  colors={{
+                    checkedThumbColor: colors.button,
+                    checkedTrackColor: colors.buttonSecondary,
+                    uncheckedThumbColor: colors.buttonSecondary,
+                    uncheckedTrackColor: colors.backgroundElement,
+                    uncheckedBorderColor: colors.buttonSecondary,
+                  }}
+                />
+              </Host>
+              <Host matchContents>
+                <Icon
+                  name={sortAlpha ? AlphaIcon : NumberIcon}
+                  size={24}
+                  color={scheme === "dark" ? "teal" : "violet"}
+                />
+              </Host>
+            </View>
           </View>
           <ScrollView style={styles.pokeList}>
             {filteredPokeList.length > 0 ? (
@@ -171,6 +205,12 @@ export default function ZukanScreen() {
 }
 
 const styles = StyleSheet.create({
+  buttonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.one,
+  },
   sort: {
     flexDirection: "row",
     gap: Spacing.one,
@@ -205,6 +245,14 @@ const styles = StyleSheet.create({
   retryButton: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
+    borderRadius: Spacing.two,
+  },
+  reloadButton: {
+    minWidth: 24,
+    minHeight: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.one,
     borderRadius: Spacing.two,
   },
   poke: {

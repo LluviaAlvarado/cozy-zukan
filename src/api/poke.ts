@@ -2,6 +2,29 @@ import storage from "@react-native-async-storage/async-storage"
 import axios from "axios"
 
 const pokeApiUrl: string = "https://pokeapi.co/api/v2/"
+const pokemonStorageKey = "pokemon-species-v1"
+
+const mapWithConcurrency = async <T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<R>,
+): Promise<R[]> => {
+  const results: R[] = new Array(items.length)
+  let nextIndex = 0
+
+  const worker = async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex++
+      results[index] = await mapper(items[index])
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, items.length) }, worker),
+  )
+
+  return results
+}
 
 const blobToDataUri = (blob: Blob) =>
   new Promise<string>((resolve, reject) => {
@@ -18,23 +41,26 @@ const blobToDataUri = (blob: Blob) =>
 export const getAllPoke = async () => {
   try {
     // first try to get from local storage, if not found then fetch from API
-    const storedPokemon = await storage.getItem("pokemon")
+    const storedPokemon = await storage.getItem(pokemonStorageKey)
     if (storedPokemon) {
       return JSON.parse(storedPokemon)
     } else {
-      const list = await axios.get(`${pokeApiUrl}pokemon/?offset=0&limit=2000`)
-      const pokemon = await Promise.all(
-        list.data.results.map(async (data: any) => {
+      await storage.removeItem("pokemon")
+      const list = await axios.get(
+        `${pokeApiUrl}pokemon-species/?offset=0&limit=2000`,
+      )
+      const pokemon = await mapWithConcurrency(
+        list.data.results,
+        8,
+        async (data: any) => {
           const id = Number(data.url.split("/").filter(Boolean).at(-1))
           let species = null
 
           try {
-            const response = await axios.get(
-              `${pokeApiUrl}pokemon-species/${id}`,
-            )
+            const response = await axios.get(data.url)
             species = response.data
           } catch (error) {
-            console.warn(`Could not load species data for Pokemon ${id}`, error)
+            console.warn(`Could not load species data for ${data.name}`, error)
           }
 
           const japaneseName =
@@ -48,10 +74,10 @@ export const getAllPoke = async () => {
             gender_rate: species?.gender_rate ?? null,
             sprite: "",
           }
-        }),
+        },
       )
       // save to local storage
-      await storage.setItem("pokemon", JSON.stringify(pokemon))
+      await storage.setItem(pokemonStorageKey, JSON.stringify(pokemon))
       return pokemon
     }
   } catch (e) {
@@ -87,7 +113,11 @@ export const getAllTypes = async () => {
 
 export const getPokeInfo = async (id: string) => {
   try {
-    const stored = await storage.getItem("pokemon")
+    const detailKey = `pokemon-info-${id}`
+    const cachedDetails = await storage.getItem(detailKey)
+    if (cachedDetails) return JSON.parse(cachedDetails)
+
+    const stored = await storage.getItem(pokemonStorageKey)
     if (!stored) throw new Error("Pokemon data is not in storage.")
 
     const pokemon = JSON.parse(stored)
@@ -97,12 +127,6 @@ export const getPokeInfo = async (id: string) => {
     if (index === -1) throw new Error(`Pokemon ${id} was not found.`)
 
     const cachedPokemon = pokemon[index]
-    if (
-      cachedPokemon.types?.length &&
-      typeof cachedPokemon.sprite === "string"
-    ) {
-      return cachedPokemon
-    }
 
     const response = await axios.get(`${pokeApiUrl}pokemon/${id}`)
     const apiPokemon = response.data
@@ -122,8 +146,7 @@ export const getPokeInfo = async (id: string) => {
       sprite,
     }
 
-    pokemon[index] = updatedPokemon
-    await storage.setItem("pokemon", JSON.stringify(pokemon))
+    await storage.setItem(detailKey, JSON.stringify(updatedPokemon))
 
     return updatedPokemon
   } catch (e) {
@@ -132,11 +155,7 @@ export const getPokeInfo = async (id: string) => {
   }
 }
 
-export const updateLocalData = async () => {
-  //cleaning up current data first
-  await storage.removeItem("pokemon")
-  await storage.removeItem("types")
-  // fetching again
-  await getAllPoke()
-  await getAllTypes()
+export const updatePokemonData = async () => {
+  await storage.multiRemove([pokemonStorageKey, "pokemon"])
+  return getAllPoke()
 }
