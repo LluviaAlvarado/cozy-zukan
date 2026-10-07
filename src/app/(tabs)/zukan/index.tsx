@@ -26,17 +26,27 @@ export default function ZukanScreen() {
   const [searchTerm, setSearchTerm] = useState("")
   const [sortAlpha, setSortAlpha] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const scheme = useColorScheme()
   const colors = Colors[scheme === "unspecified" ? "dark" : scheme]
 
-  useEffect(() => {
+  const loadPokemon = () => {
+    setLoading(true)
+    setLoadError(false)
     getAllPoke()
       .then((list) => {
         setPokeList(list)
         setFilteredPokeList(sortList(filterList(list)))
       })
-      .catch((error: Error | AxiosError) => console.error(error))
+      .catch((error: Error | AxiosError) => {
+        console.error(error)
+        setLoadError(true)
+      })
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadPokemon()
   }, [])
 
   useEffect(() => {
@@ -91,6 +101,16 @@ export default function ZukanScreen() {
 
       {loading ? (
         <ThemedText>Loading Pokemon...</ThemedText>
+      ) : loadError ? (
+        <View style={styles.message}>
+          <ThemedText type="info">Could not load the Pokemon list.</ThemedText>
+          <Pressable
+            accessibilityRole="button"
+            style={[styles.retryButton, { backgroundColor: colors.button }]}
+            onPress={loadPokemon}>
+            <ThemedText type="bold">Try again</ThemedText>
+          </Pressable>
+        </View>
       ) : (
         <View style={GlobalStyles.column}>
           <LinearGradient
@@ -135,7 +155,15 @@ export default function ZukanScreen() {
               />
             </Host>
           </View>
-          <ScrollView style={styles.pokeList}>{renderPokemon()}</ScrollView>
+          <ScrollView style={styles.pokeList}>
+            {filteredPokeList.length > 0 ? (
+              renderPokemon()
+            ) : (
+              <ThemedText style={styles.message}>
+                No Pokemon match this search.
+              </ThemedText>
+            )}
+          </ScrollView>
         </View>
       )}
     </SafeAreaView>
@@ -167,6 +195,17 @@ const styles = StyleSheet.create({
   pokeList: {
     flex: 1,
     minHeight: "50%",
+  },
+  message: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.two,
+    padding: Spacing.four,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    borderRadius: Spacing.two,
   },
   poke: {
     gap: Spacing.one,

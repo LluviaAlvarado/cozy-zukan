@@ -18,9 +18,9 @@ const blobToDataUri = (blob: Blob) =>
 export const getAllPoke = async () => {
   try {
     // first try to get from local storage, if not found then fetch from API
-    if (await storage.getItem("pokemon")) {
-      const pokemon = await storage.getItem("pokemon")
-      return JSON.parse(pokemon ?? "")
+    const storedPokemon = await storage.getItem("pokemon")
+    if (storedPokemon) {
+      return JSON.parse(storedPokemon)
     } else {
       const list = await axios.get(`${pokeApiUrl}pokemon/?offset=0&limit=2000`)
       const pokemon = await Promise.all(
@@ -63,8 +63,9 @@ export const getAllPoke = async () => {
 export const getAllTypes = async () => {
   let types = []
   try {
-    if (await storage.getItem("types")) {
-      types = JSON.parse((await storage.getItem("types")) ?? "")
+    const storedTypes = await storage.getItem("types")
+    if (storedTypes) {
+      types = JSON.parse(storedTypes)
     } else {
       for (let i = 1; i < 19; i++) {
         const type = await axios.get(`${pokeApiUrl}type/${i}`)

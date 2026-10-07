@@ -68,10 +68,20 @@ export default function PokemonScreen() {
           <ThemedText type="title">{pokemon.name}</ThemedText>
           <ThemedText>#{pokemon.id}</ThemedText>
           <View style={styles.typesRow}>{renderTypes(pokemon.types)}</View>
-          <ThemedText>Chance for it to be a girlypop:</ThemedText>
-          <ThemedText type="bold">
-            {(pokemon.gender_rate / 8) * 100}%
-          </ThemedText>
+          {pokemon.gender_rate === -1 ? (
+            <ThemedText type="bold">Genderless</ThemedText>
+          ) : Number.isInteger(pokemon.gender_rate) &&
+            pokemon.gender_rate >= 0 &&
+            pokemon.gender_rate <= 8 ? (
+            <>
+              <ThemedText>Chance of being a girlypop:</ThemedText>
+              <ThemedText type="bold">
+                {(pokemon.gender_rate / 8) * 100}%
+              </ThemedText>
+            </>
+          ) : (
+            <ThemedText type="bold">Gender rate unknown</ThemedText>
+          )}
         </View>
       )}
     </ThemedView>
